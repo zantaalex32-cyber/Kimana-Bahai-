@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { ClusterLogo } from './ClusterLogo';
 import { Bell, Menu, Search, MapPin, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 export const Header: React.FC = () => {
   const {
@@ -54,6 +55,9 @@ export const Header: React.FC = () => {
 
         {/* Right Action Icons */}
         <div className="flex items-center gap-1.5 shrink-0">
+          {/* PWA Install Button */}
+          <PWAInstallButton variant="header" />
+
           {/* Handheld / Fluid toggle */}
           <button
             onClick={() => setViewMode(viewMode === 'handheld' ? 'responsive' : 'handheld')}

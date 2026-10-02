@@ -15,6 +15,7 @@ import {
   HelpCircle,
   Sparkles,
 } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 export const DrawerMenu: React.FC = () => {
   const {
@@ -154,10 +155,12 @@ export const DrawerMenu: React.FC = () => {
             </div>
           </button>
 
-          <div className="pt-3 border-t border-slate-100">
+          <div className="pt-3 border-t border-slate-100 space-y-1">
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5">
-              Tools & Simulation
+              Android Download & App Settings
             </div>
+
+            <PWAInstallButton variant="drawer" />
 
             <button
               onClick={handleTestNotification}
@@ -192,10 +195,13 @@ export const DrawerMenu: React.FC = () => {
 
             <button
               onClick={() => {
-                if (confirm('Reset all demo data back to initial Kimana cluster state?')) {
-                  resetAllData();
-                  setIsDrawerOpen(false);
-                }
+                resetAllData();
+                triggerPushNotification(
+                  'Cluster Records Reset 🔄',
+                  'Kimana cluster tracking data cleared to fresh start.',
+                  'reminder'
+                );
+                setIsDrawerOpen(false);
               }}
               className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-slate-100 font-semibold text-xs transition-colors text-left"
             >
@@ -203,8 +209,8 @@ export const DrawerMenu: React.FC = () => {
                 <RefreshCw className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-slate-800">Reset Initial Data</div>
-                <div className="text-[10px] text-slate-400 font-normal">Restore default Kimana cluster records</div>
+                <div className="text-slate-800">Clear All Stored Records</div>
+                <div className="text-[10px] text-slate-400 font-normal">Wipe saved data and start fresh</div>
               </div>
             </button>
           </div>

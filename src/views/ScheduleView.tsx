@@ -29,7 +29,7 @@ export const ScheduleView: React.FC = () => {
   const filteredSessions = scheduledSessions.filter((s) => s.status === activeTab);
 
   const handleCreateNew = () => {
-    setSelectedFacilitatorForBooking(facilitators[0]);
+    setSelectedFacilitatorForBooking(facilitators.length > 0 ? facilitators[0] : null);
     setBookingModalOpen(true);
   };
 
@@ -38,19 +38,17 @@ export const ScheduleView: React.FC = () => {
   };
 
   const handleCancel = (id: string, title: string) => {
-    if (confirm(`Cancel "${title}"? An automated cancellation notification will be sent to the team.`)) {
-      updateSessionStatus(id, 'cancelled');
-      triggerPushNotification(
-        'Session Cancelled ⚠️',
-        `"${title}" was cancelled. Schedule slots reopened for Kimana cluster coordinators.`,
-        'reminder'
-      );
-    }
+    updateSessionStatus(id, 'cancelled');
+    triggerPushNotification(
+      'Session Cancelled ⚠️',
+      `"${title}" was moved to Cancelled. Schedule slots reopened for Kimana cluster coordinators.`,
+      'reminder'
+    );
   };
 
   const handleReschedule = (session: ScheduledSession) => {
-    const fac = facilitators.find((f) => f.id === session.facilitatorId) || facilitators[0];
-    setSelectedFacilitatorForBooking(fac);
+    const fac = facilitators.find((f) => f.id === session.facilitatorId);
+    setSelectedFacilitatorForBooking(fac || null);
     setBookingModalOpen(true);
   };
 

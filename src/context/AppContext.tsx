@@ -63,12 +63,19 @@ interface AppContextType {
   lastBookedSession: ScheduledSession | null;
   selectedSessionDetail: ScheduledSession | null;
   setSelectedSessionDetail: (s: ScheduledSession | null) => void;
+  selectedActivityDetail: CoreActivity | null;
+  setSelectedActivityDetail: (a: CoreActivity | null) => void;
 
   // Operations
   toggleFavoriteFacilitator: (id: string) => void;
+  addNewFacilitator: (facilitator: Omit<Facilitator, 'id'>) => void;
   scheduleSession: (sessionData: Omit<ScheduledSession, 'id' | 'automatedRemindersSent'>) => ScheduledSession;
   updateSessionStatus: (id: string, status: 'scheduled' | 'completed' | 'cancelled') => void;
-  addNewCoreActivity: (activity: Omit<CoreActivity, 'id' | 'cycle'>) => void;
+  addNewCoreActivity: (activity: Omit<CoreActivity, 'id' | 'cycle' | 'roster' | 'sessionLogs'>) => void;
+  logActivitySession: (activityId: string, sessionLog: { date: string; attendeesCount: number; topicCovered: string; notes?: string; loggedBy: string }) => void;
+  addParticipantToActivity: (activityId: string, participant: { name: string; age?: number; isFriendOfFaith: boolean; guardianName?: string; guardianPhone?: string }) => void;
+  updateActivityCurriculumProgress: (activityId: string, currentUnit: number) => void;
+  updateServiceProjectStatus: (activityId: string, status: 'planning' | 'in_progress' | 'completed', hours?: number) => void;
   addLsaMeeting: (meeting: Omit<LsaMeeting, 'id' | 'meetingNumber' | 'quorumReached'>) => void;
   updateAgendaStatus: (meetingId: string, itemId: string, status: 'pending' | 'consulted' | 'resolved') => void;
   addLsaResolution: (meetingId: string, resolution: string) => void;
@@ -95,54 +102,82 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>('all');
   const [selectedActivityType, setSelectedActivityType] = useState<string>('all');
 
+  // Clean storage versioning to ensure all mock/test data is cleared
+  useEffect(() => {
+    const CURRENT_VERSION = 'v3_clean_prod';
+    if (localStorage.getItem('kimana_app_version') !== CURRENT_VERSION) {
+      localStorage.removeItem('kimana_favorites');
+      localStorage.removeItem('kimana_neighborhoods');
+      localStorage.removeItem('kimana_facilitators');
+      localStorage.removeItem('kimana_core_activities');
+      localStorage.removeItem('kimana_growth_cycle');
+      localStorage.removeItem('kimana_lsa_meetings');
+      localStorage.removeItem('kimana_institute_goals');
+      localStorage.removeItem('kimana_scheduled_sessions');
+      localStorage.removeItem('kimana_messages');
+      localStorage.removeItem('kimana_notifications');
+      localStorage.setItem('kimana_app_version', CURRENT_VERSION);
+    }
+  }, []);
+
   // Favorites
   const [favoriteFacilitatorIds, setFavoriteFacilitatorIds] = useState<string[]>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return [];
     const saved = localStorage.getItem('kimana_favorites');
-    return saved ? JSON.parse(saved) : ['fac-1', 'fac-3'];
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Data persistence
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return INITIAL_NEIGHBORHOODS;
     const saved = localStorage.getItem('kimana_neighborhoods');
     return saved ? JSON.parse(saved) : INITIAL_NEIGHBORHOODS;
   });
 
-  const [facilitators] = useState<Facilitator[]>(() => {
+  const [facilitators, setFacilitators] = useState<Facilitator[]>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return INITIAL_FACILITATORS;
     const saved = localStorage.getItem('kimana_facilitators');
     return saved ? JSON.parse(saved) : INITIAL_FACILITATORS;
   });
 
   const [coreActivities, setCoreActivities] = useState<CoreActivity[]>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return INITIAL_CORE_ACTIVITIES;
     const saved = localStorage.getItem('kimana_core_activities');
     return saved ? JSON.parse(saved) : INITIAL_CORE_ACTIVITIES;
   });
 
   const [growthCycle, setGrowthCycle] = useState<GrowthCycle>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return INITIAL_GROWTH_CYCLE;
     const saved = localStorage.getItem('kimana_growth_cycle');
     return saved ? JSON.parse(saved) : INITIAL_GROWTH_CYCLE;
   });
 
   const [lsaMeetings, setLsaMeetings] = useState<LsaMeeting[]>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return INITIAL_LSA_MEETINGS;
     const saved = localStorage.getItem('kimana_lsa_meetings');
     return saved ? JSON.parse(saved) : INITIAL_LSA_MEETINGS;
   });
 
   const [instituteGoals, setInstituteGoals] = useState<RegionalInstituteGoal[]>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return INITIAL_INSTITUTE_GOALS;
     const saved = localStorage.getItem('kimana_institute_goals');
     return saved ? JSON.parse(saved) : INITIAL_INSTITUTE_GOALS;
   });
 
   const [scheduledSessions, setScheduledSessions] = useState<ScheduledSession[]>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return INITIAL_SCHEDULED_SESSIONS;
     const saved = localStorage.getItem('kimana_scheduled_sessions');
     return saved ? JSON.parse(saved) : INITIAL_SCHEDULED_SESSIONS;
   });
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return INITIAL_MESSAGES;
     const saved = localStorage.getItem('kimana_messages');
     return saved ? JSON.parse(saved) : INITIAL_MESSAGES;
   });
 
   const [notifications, setNotifications] = useState<PushNotificationItem[]>(() => {
+    if (localStorage.getItem('kimana_app_version') !== 'v3_clean_prod') return INITIAL_NOTIFICATIONS;
     const saved = localStorage.getItem('kimana_notifications');
     return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
   });
@@ -153,11 +188,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [lastBookedSession, setLastBookedSession] = useState<ScheduledSession | null>(null);
   const [selectedSessionDetail, setSelectedSessionDetail] = useState<ScheduledSession | null>(null);
+  const [selectedActivityDetail, setSelectedActivityDetail] = useState<CoreActivity | null>(null);
 
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem('kimana_favorites', JSON.stringify(favoriteFacilitatorIds));
   }, [favoriteFacilitatorIds]);
+
+  useEffect(() => {
+    localStorage.setItem('kimana_facilitators', JSON.stringify(facilitators));
+  }, [facilitators]);
+
+  useEffect(() => {
+    localStorage.setItem('kimana_neighborhoods', JSON.stringify(neighborhoods));
+  }, [neighborhoods]);
 
   useEffect(() => {
     localStorage.setItem('kimana_core_activities', JSON.stringify(coreActivities));
@@ -269,11 +313,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const addNewCoreActivity = (activity: Omit<CoreActivity, 'id' | 'cycle'>) => {
+  const addNewFacilitator = (facilitator: Omit<Facilitator, 'id'>) => {
+    const newFac: Facilitator = {
+      ...facilitator,
+      id: `fac-${Date.now()}`,
+    };
+    setFacilitators(prev => [...prev, newFac]);
+    triggerPushNotification(
+      'New Facilitator Registered 🤝',
+      `${newFac.name} registered as ${newFac.role} in ${newFac.primaryNeighborhood}.`,
+      'reminder',
+      newFac.primaryNeighborhood
+    );
+  };
+
+  const addNewCoreActivity = (activity: Omit<CoreActivity, 'id' | 'cycle' | 'roster' | 'sessionLogs'>) => {
     const newActivity: CoreActivity = {
       ...activity,
       id: `act-${Date.now()}`,
       cycle: growthCycle.cycleNumber,
+      roster: [],
+      sessionLogs: [],
     };
 
     setCoreActivities(prev => [newActivity, ...prev]);
@@ -312,6 +372,140 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `"${activity.title}" (${activity.type.replace('_', ' ')}) started in ${activity.neighborhood}!`,
       'milestone',
       activity.neighborhood
+    );
+  };
+
+  const logActivitySession = (
+    activityId: string,
+    sessionLog: { date: string; attendeesCount: number; topicCovered: string; notes?: string; loggedBy: string }
+  ) => {
+    const newLog = {
+      ...sessionLog,
+      id: `log-${Date.now()}`,
+    };
+
+    setCoreActivities(prev =>
+      prev.map(act => {
+        if (act.id === activityId) {
+          const updated = {
+            ...act,
+            sessionLogs: [newLog, ...(act.sessionLogs || [])],
+          };
+          if (selectedActivityDetail?.id === activityId) {
+            setSelectedActivityDetail(updated);
+          }
+          return updated;
+        }
+        return act;
+      })
+    );
+
+    triggerPushNotification(
+      'Activity Gathering Logged 📝',
+      `${sessionLog.attendeesCount} attended session on "${sessionLog.topicCovered.slice(0, 45)}...".`,
+      'milestone'
+    );
+  };
+
+  const addParticipantToActivity = (
+    activityId: string,
+    participant: { name: string; age?: number; isFriendOfFaith: boolean; guardianName?: string; guardianPhone?: string }
+  ) => {
+    const newParticipant = {
+      ...participant,
+      id: `p-${Date.now()}`,
+      attendanceCount: 1,
+      joinedDate: new Date().toISOString().split('T')[0],
+    };
+
+    setCoreActivities(prev =>
+      prev.map(act => {
+        if (act.id === activityId) {
+          const updatedRoster = [...(act.roster || []), newParticipant];
+          const updated = {
+            ...act,
+            participantsCount: act.participantsCount + 1,
+            friendsOfFaithCount: participant.isFriendOfFaith ? act.friendsOfFaithCount + 1 : act.friendsOfFaithCount,
+            roster: updatedRoster,
+          };
+          if (selectedActivityDetail?.id === activityId) {
+            setSelectedActivityDetail(updated);
+          }
+          return updated;
+        }
+        return act;
+      })
+    );
+
+    // Update cycle participants
+    setGrowthCycle(prev => ({
+      ...prev,
+      actuals: {
+        ...prev.actuals,
+        participants: prev.actuals.participants + 1,
+      }
+    }));
+
+    triggerPushNotification(
+      'New Soul Enrolled 👥',
+      `${participant.name} joined Kimana cluster community building activities!`,
+      'milestone'
+    );
+  };
+
+  const updateActivityCurriculumProgress = (activityId: string, currentUnit: number) => {
+    setCoreActivities(prev =>
+      prev.map(act => {
+        if (act.id === activityId) {
+          const updated = {
+            ...act,
+            currentUnitOrChapter: currentUnit,
+          };
+          if (selectedActivityDetail?.id === activityId) {
+            setSelectedActivityDetail(updated);
+          }
+          return updated;
+        }
+        return act;
+      })
+    );
+
+    triggerPushNotification(
+      'Curriculum Milestone Updated 📖',
+      `Progress updated to Chapter/Unit ${currentUnit}.`,
+      'growth_alert'
+    );
+  };
+
+  const updateServiceProjectStatus = (
+    activityId: string,
+    status: 'planning' | 'in_progress' | 'completed',
+    hours?: number
+  ) => {
+    setCoreActivities(prev =>
+      prev.map(act => {
+        if (act.id === activityId && act.serviceProject) {
+          const updated = {
+            ...act,
+            serviceProject: {
+              ...act.serviceProject,
+              status,
+              hoursServed: hours !== undefined ? hours : act.serviceProject.hoursServed,
+            },
+          };
+          if (selectedActivityDetail?.id === activityId) {
+            setSelectedActivityDetail(updated);
+          }
+          return updated;
+        }
+        return act;
+      })
+    );
+
+    triggerPushNotification(
+      'JY Service Project Updated 🌟',
+      `Service project marked as ${status.replace('_', ' ')}.`,
+      'milestone'
     );
   };
 
@@ -450,6 +644,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const resetAllData = () => {
     localStorage.clear();
     setNeighborhoods(INITIAL_NEIGHBORHOODS);
+    setFacilitators(INITIAL_FACILITATORS);
     setCoreActivities(INITIAL_CORE_ACTIVITIES);
     setGrowthCycle(INITIAL_GROWTH_CYCLE);
     setLsaMeetings(INITIAL_LSA_MEETINGS);
@@ -457,7 +652,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setScheduledSessions(INITIAL_SCHEDULED_SESSIONS);
     setMessages(INITIAL_MESSAGES);
     setNotifications(INITIAL_NOTIFICATIONS);
-    setFavoriteFacilitatorIds(['fac-1', 'fac-3']);
+    setFavoriteFacilitatorIds([]);
+    localStorage.setItem('kimana_app_version', 'v3_clean_prod');
   };
 
   return (
@@ -496,10 +692,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         lastBookedSession,
         selectedSessionDetail,
         setSelectedSessionDetail,
+        selectedActivityDetail,
+        setSelectedActivityDetail,
         toggleFavoriteFacilitator,
+        addNewFacilitator,
         scheduleSession,
         updateSessionStatus,
         addNewCoreActivity,
+        logActivitySession,
+        addParticipantToActivity,
+        updateActivityCurriculumProgress,
+        updateServiceProjectStatus,
         addLsaMeeting,
         updateAgendaStatus,
         addLsaResolution,

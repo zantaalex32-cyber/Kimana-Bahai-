@@ -36,9 +36,12 @@ export const LsaView: React.FC = () => {
   const [newResolutionText, setNewResolutionText] = useState('');
   const [selectedMeetingForResolution, setSelectedMeetingForResolution] = useState(lsaMeetings[0]?.id || '');
 
+  const upcomingMeetings = lsaMeetings.filter((m) => m.status === 'upcoming');
+  const nextMeeting = upcomingMeetings[0];
+
   const handleAddResolution = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newResolutionText.trim()) return;
+    if (!newResolutionText.trim() || !selectedMeetingForResolution) return;
     addLsaResolution(selectedMeetingForResolution, newResolutionText.trim());
     setNewResolutionText('');
   };
@@ -67,9 +70,11 @@ export const LsaView: React.FC = () => {
             </p>
 
             <div className="mt-3 pt-3 border-t border-white/20 flex items-center justify-between text-xs text-purple-100">
-              <span>Next Meeting: <strong>Oct 8, 2026</strong></span>
+              <span>
+                Next Meeting: <strong>{nextMeeting ? `${nextMeeting.meetingNumber} (${nextMeeting.date})` : 'Not scheduled'}</strong>
+              </span>
               <span className="text-emerald-300 font-bold bg-white/10 px-2 py-0.5 rounded-full text-[10px]">
-                Quorum Confirmed (9/9)
+                {nextMeeting ? `Quorum: ${nextMeeting.attendeesCount}/9` : 'LSA Ready (9 Members)'}
               </span>
             </div>
           </div>
@@ -126,7 +131,23 @@ export const LsaView: React.FC = () => {
             </button>
           </div>
 
-          {lsaMeetings.map((meeting) => {
+          {lsaMeetings.length === 0 ? (
+            <div className="bg-white rounded-3xl p-8 text-center border border-dashed border-purple-200">
+              <Landmark className="w-10 h-10 text-purple-300 mx-auto mb-2" />
+              <p className="text-xs font-bold text-slate-800">No Assembly Meetings Convened Yet</p>
+              <p className="text-[11px] text-slate-500 mt-1 max-w-xs mx-auto">
+                Plan and convene your first LSA meeting to consult on neighborhood growth, set agendas, and track quorum.
+              </p>
+              <button
+                onClick={() => setShowNewMeetingModal(true)}
+                className="mt-3.5 px-4 py-2 bg-purple-800 hover:bg-purple-900 text-white font-bold text-xs rounded-xl shadow-xs inline-flex items-center gap-1.5 transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Convene Meeting #1</span>
+              </button>
+            </div>
+          ) : (
+            lsaMeetings.map((meeting) => {
             const isExpanded = expandedMeetingId === meeting.id;
 
             return (
@@ -273,7 +294,7 @@ export const LsaView: React.FC = () => {
                 )}
               </div>
             );
-          })}
+          }))}
         </div>
       )}
 
@@ -424,23 +445,35 @@ export const LsaView: React.FC = () => {
 
           {/* Resolutions list */}
           <div className="space-y-2.5">
-            {lsaMeetings.flatMap((m) =>
-              m.resolutions.map((res, idx) => (
-                <div
-                  key={`${m.id}-${idx}`}
-                  className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1"
-                >
-                  <div className="flex items-center justify-between text-[10px] text-slate-400">
-                    <span className="font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded">
-                      {m.meetingNumber}
-                    </span>
-                    <span>Date: {m.date}</span>
+            {lsaMeetings.flatMap((m) => m.resolutions).length === 0 ? (
+              <div className="bg-white rounded-3xl p-8 text-center border border-dashed border-purple-200">
+                <FileText className="w-8 h-8 text-purple-300 mx-auto mb-2" />
+                <p className="text-xs font-bold text-slate-700">No Resolutions Recorded Yet</p>
+                <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">
+                  {lsaMeetings.length === 0
+                    ? 'Convene an LSA meeting first to record agreed resolutions and decisions.'
+                    : 'Use the form above to record an official assembly resolution for this cycle.'}
+                </p>
+              </div>
+            ) : (
+              lsaMeetings.flatMap((m) =>
+                m.resolutions.map((res, idx) => (
+                  <div
+                    key={`${m.id}-${idx}`}
+                    className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-[10px] text-slate-400">
+                      <span className="font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded">
+                        {m.meetingNumber}
+                      </span>
+                      <span>Date: {m.date}</span>
+                    </div>
+                    <p className="text-xs text-slate-800 font-medium leading-relaxed pt-1">
+                      "{res}"
+                    </p>
                   </div>
-                  <p className="text-xs text-slate-800 font-medium leading-relaxed pt-1">
-                    "{res}"
-                  </p>
-                </div>
-              ))
+                ))
+              )
             )}
           </div>
         </div>

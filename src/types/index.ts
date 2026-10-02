@@ -6,6 +6,26 @@ export type CoreActivityType =
   | 'home_visit' 
   | 'youth_service';
 
+export interface ParticipantRecord {
+  id: string;
+  name: string;
+  age?: number;
+  isFriendOfFaith: boolean;
+  guardianName?: string;
+  guardianPhone?: string;
+  attendanceCount: number;
+  joinedDate?: string;
+}
+
+export interface ActivitySessionLog {
+  id: string;
+  date: string;
+  attendeesCount: number;
+  topicCovered: string;
+  notes?: string;
+  loggedBy: string;
+}
+
 export interface CoreActivity {
   id: string;
   title: string;
@@ -13,13 +33,39 @@ export interface CoreActivity {
   neighborhood: string;
   facilitatorId: string;
   facilitatorName: string;
+  coFacilitator?: string;
   participantsCount: number;
   friendsOfFaithCount: number;
   meetingDayTime: string;
   location: string;
-  currentBookOrLesson?: string; // e.g., "Ruhi Book 1", "Breezes of Confirmation"
   status: 'active' | 'in_planning' | 'paused';
   cycle: number;
+  
+  // Specific curriculum & progress tracking
+  currentBookOrLesson?: string; // e.g., "Ruhi Book 1", "Breezes of Confirmation"
+  currentUnitOrChapter?: number;
+  totalUnitsOrChapters?: number;
+  virtueOrTheme?: string;
+  memorizationQuote?: string;
+  targetAgeRange?: string; // e.g., "5-7 years", "11-14 years", "Youth & Adults"
+  gradeLevel?: string; // e.g., "Grade 1", "Grade 2"
+  frequency?: string; // e.g., "Weekly", "Fortnightly"
+  languages?: string[]; // e.g., ["Swahili", "Maa", "English"]
+
+  // Junior Youth specific
+  serviceProject?: {
+    title: string;
+    description: string;
+    status: 'planning' | 'in_progress' | 'completed';
+    hoursServed?: number;
+  };
+
+  // Study circle specific
+  practicalComponent?: string; // e.g. "Conduct 2 home visits and organize a devotional"
+
+  // Participants roster & attendance history
+  roster: ParticipantRecord[];
+  sessionLogs: ActivitySessionLog[];
 }
 
 export interface Facilitator {

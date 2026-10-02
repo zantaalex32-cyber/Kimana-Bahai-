@@ -1,0 +1,47 @@
+<svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="128" fill="#882455"/>
+  <defs>
+    <linearGradient id="blueSwoop" x1="50" y1="360" x2="230" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="50%" stop-color="#0EA5E9" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+    <linearGradient id="navySwoop" x1="130" y1="280" x2="380" y2="460" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="40%" stop-color="#1E3A8A" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+    <linearGradient id="greenSwoop" x1="100" y1="410" x2="410" y2="435" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="50%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#84CC16" />
+    </linearGradient>
+    <linearGradient id="goldSwoop" x1="150" y1="260" x2="435" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="50%" stop-color="#EAB308" />
+      <stop offset="100%" stop-color="#FDE047" />
+    </linearGradient>
+    <linearGradient id="redSwoop" x1="310" y1="435" x2="485" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EA580C" />
+      <stop offset="50%" stop-color="#E11D48" />
+      <stop offset="100%" stop-color="#BE123C" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(56, 56) scale(2)">
+    <path d="M28 65C30 95 44 140 85 168C115 186 150 178 152 176C138 174 100 162 76 138C52 114 48 85 45 68C40 60 30 52 28 65Z" fill="url(#navySwoop)"/>
+    <path d="M32 75C24 95 24 125 45 152C58 135 62 108 80 82C95 62 118 42 142 35C125 32 98 38 78 50C58 62 42 70 32 75Z" fill="url(#blueSwoop)" opacity="0.95"/>
+    <path d="M62 152C85 169 118 172 150 160C140 154 116 150 94 138C76 128 64 120 58 135C57 142 59 148 62 152Z" fill="url(#greenSwoop)"/>
+    <path d="M65 95C62 120 78 145 106 152C132 158 160 142 172 116C158 130 134 136 112 130C90 124 78 108 76 92C75 88 70 85 65 95Z" fill="url(#goldSwoop)"/>
+    <path d="M72 102C82 124 108 136 136 130C152 124 165 108 170 94C164 110 146 122 128 122C108 122 90 110 82 96C78 88 74 94 72 102Z" fill="#FACC15"/>
+    <path d="M130 145C155 138 175 118 184 88C190 68 188 45 180 32C178 48 174 72 158 92C146 108 132 120 120 128C116 134 122 147 130 145Z" fill="url(#redSwoop)"/>
+    <circle cx="22" cy="70" r="3.5" fill="#0EA5E9"/>
+    <circle cx="16" cy="88" r="2.5" fill="#38BDF8"/>
+    <circle cx="28" cy="115" r="3" fill="#0284C7"/>
+    <circle cx="88" cy="178" r="2.8" fill="#10B981"/>
+    <circle cx="120" cy="182" r="3.2" fill="#84CC16"/>
+    <circle cx="188" cy="72" r="3.5" fill="#E11D48"/>
+    <circle cx="192" cy="52" r="2.5" fill="#F43F5E"/>
+    <circle cx="182" cy="38" r="3" fill="#EA580C"/>
+  </g>
+</svg>

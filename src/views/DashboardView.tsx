@@ -29,18 +29,54 @@ export const DashboardView: React.FC = () => {
 
   const [activeMetricTab, setActiveMetricTab] = useState<'cycles' | 'neighborhoods' | 'institute_pipeline'>('cycles');
 
-  // Calculations
-  const actPct = Math.min(100, Math.round((growthCycle.actuals.coreActivities / growthCycle.targets.coreActivities) * 100));
-  const partPct = Math.min(100, Math.round((growthCycle.actuals.participants / growthCycle.targets.participants) * 100));
-  const visitsPct = Math.min(100, Math.round((growthCycle.actuals.homeVisits / growthCycle.targets.homeVisits) * 100));
-  const jyPct = Math.min(100, Math.round((growthCycle.actuals.jyGroups / growthCycle.targets.jyGroups) * 100));
+  // Real-time calculations from logged core activities
+  const liveCoreActivitiesCount = coreActivities.length;
+  const liveParticipantsCount = coreActivities.reduce((acc, a) => acc + a.participantsCount, 0);
+  const liveJyCount = coreActivities.filter((a) => a.type === 'junior_youth').length;
+  const liveJyParticipants = coreActivities
+    .filter((a) => a.type === 'junior_youth')
+    .reduce((acc, a) => acc + a.participantsCount, 0);
+  const liveHomeVisitsCount = coreActivities.filter((a) => a.type === 'home_visit').length;
+
+  const actPct = Math.min(100, Math.round((liveCoreActivitiesCount / (growthCycle.targets.coreActivities || 1)) * 100));
+  const partPct = Math.min(100, Math.round((liveParticipantsCount / (growthCycle.targets.participants || 1)) * 100));
+  const visitsPct = Math.min(100, Math.round((liveHomeVisitsCount / (growthCycle.targets.homeVisits || 1)) * 100));
+  const jyPct = Math.min(100, Math.round((liveJyCount / (growthCycle.targets.jyGroups || 1)) * 100));
+
+  // Ruhi sequence calculated dynamically from registered study circles and facilitators
+  const ruhiCourses = [
+    { book: 'Ruhi Book 1', name: 'Reflections on the Life of the Spirit', shortKey: 'Book 1' },
+    { book: 'Ruhi Book 2', name: 'Arising to Serve (Visiting Homes)', shortKey: 'Book 2' },
+    { book: 'Ruhi Book 3', name: "Teaching Children's Classes (Grade 1)", shortKey: 'Book 3' },
+    { book: 'Ruhi Book 4', name: 'The Twin Manifestations', shortKey: 'Book 4' },
+    { book: 'Ruhi Book 5', name: 'Releasing the Powers of Junior Youth', shortKey: 'Book 5' },
+    { book: 'Ruhi Book 6', name: 'Teaching the Cause', shortKey: 'Book 6' },
+    { book: 'Ruhi Book 7', name: 'Walking Together on a Path of Service (Tutors)', shortKey: 'Book 7' },
+  ].map((c) => {
+    const studyCirclesForBook = coreActivities.filter(
+      (a) =>
+        a.type === 'study_circle' &&
+        (a.currentBookOrLesson?.toLowerCase().includes(c.shortKey.toLowerCase()) ||
+          a.title.toLowerCase().includes(c.shortKey.toLowerCase()))
+    );
+    const soulsInCircles = studyCirclesForBook.reduce((acc, a) => acc + a.participantsCount, 0);
+    const facsCompleted = facilitators.filter((f) =>
+      f.instituteCompleted.some((b) => b.toLowerCase().includes(c.shortKey.toLowerCase()))
+    ).length;
+    const totalCount = soulsInCircles + facsCompleted;
+    const pct = Math.min(
+      100,
+      Math.round((totalCount / Math.max(1, growthCycle.targets.ruhiGraduates || 25)) * 100)
+    );
+    return { ...c, count: totalCount, pct };
+  });
 
   // Past 4 Cycles Data for Comparison
   const cyclesHistory = [
-    { cycle: 21, activities: 36, participants: 275, graduates: 12 },
-    { cycle: 22, activities: 44, participants: 340, graduates: 15 },
-    { cycle: 23, activities: 51, participants: 410, graduates: 18 },
-    { cycle: 24, activities: growthCycle.actuals.coreActivities, participants: growthCycle.actuals.participants, graduates: growthCycle.actuals.ruhiGraduates },
+    { cycle: 21, activities: 0, participants: 0, graduates: 0 },
+    { cycle: 22, activities: 0, participants: 0, graduates: 0 },
+    { cycle: 23, activities: 0, participants: 0, graduates: 0 },
+    { cycle: 24, activities: liveCoreActivitiesCount, participants: liveParticipantsCount, graduates: growthCycle.actuals.ruhiGraduates },
   ];
 
   return (
@@ -202,7 +238,7 @@ export const DashboardView: React.FC = () => {
                 />
               </div>
               <div className="text-[10px] text-slate-500 font-medium">
-                184 youth actively serving
+                {liveJyParticipants} youth participating across {liveJyCount} groups
               </div>
             </div>
 
@@ -242,14 +278,14 @@ export const DashboardView: React.FC = () => {
                 <p className="text-[10px] text-slate-400">Total core activities and souls reached</p>
               </div>
               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                +64% Growth
+                {liveCoreActivitiesCount > 0 ? `${liveCoreActivitiesCount} Activities Active` : 'Cycle Initiated'}
               </span>
             </div>
 
             {/* Vertical Bar Chart visualization */}
             <div className="pt-4 pb-2 flex items-end justify-between gap-3 h-36 px-2">
               {cyclesHistory.map((item) => {
-                const heightPct = Math.round((item.activities / 65) * 100);
+                const heightPct = Math.round((item.activities / Math.max(1, liveCoreActivitiesCount, 25)) * 100);
                 const isCurrent = item.cycle === 24;
 
                 return (
@@ -379,15 +415,7 @@ export const DashboardView: React.FC = () => {
           </div>
 
           <div className="space-y-2.5">
-            {[
-              { book: 'Ruhi Book 1', name: 'Reflections on the Life of the Spirit', count: 96, pct: 100 },
-              { book: 'Ruhi Book 2', name: 'Arising to Serve (Visiting Homes)', count: 68, pct: 70 },
-              { book: 'Ruhi Book 3', name: "Teaching Children's Classes (Grade 1)", count: 48, pct: 50 },
-              { book: 'Ruhi Book 4', name: 'The Twin Manifestations', count: 38, pct: 40 },
-              { book: 'Ruhi Book 5', name: 'Releasing the Powers of Junior Youth', count: 32, pct: 33 },
-              { book: 'Ruhi Book 6', name: 'Teaching the Cause', count: 26, pct: 27 },
-              { book: 'Ruhi Book 7', name: 'Walking Together on a Path of Service (Tutors)', count: 21, pct: 22 },
-            ].map((course) => (
+            {ruhiCourses.map((course) => (
               <div key={course.book} className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
                   <div>
@@ -409,7 +437,15 @@ export const DashboardView: React.FC = () => {
           </div>
 
           <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500 leading-relaxed bg-rose-50/50 p-2.5 rounded-2xl">
-            💡 <strong>Facilitator Insight:</strong> 11 youth currently studying Book 5 in Inkisanjani are preparing to launch 4 new Junior Youth groups in the upcoming expansion phase.
+            {liveCoreActivitiesCount > 0 || facilitators.length > 0 ? (
+              <span>
+                💡 <strong>Facilitator Insight:</strong> {liveCoreActivitiesCount} active activities and {facilitators.length} facilitators are currently advancing capacity building across Kimana neighborhoods in {growthCycle.currentPhase} phase.
+              </span>
+            ) : (
+              <span>
+                💡 <strong>Facilitator Insight:</strong> Register Study Circles and Animators to track Ruhi sequence capacity building progression across Kimana neighborhoods.
+              </span>
+            )}
           </div>
         </div>
       )}

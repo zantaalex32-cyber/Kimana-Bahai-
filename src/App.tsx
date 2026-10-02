@@ -7,6 +7,8 @@ import { NotificationDrawer } from './components/NotificationDrawer';
 import { NotificationToast } from './components/NotificationToast';
 import { BookingModal } from './components/BookingModal';
 import { BookingSuccessModal } from './components/BookingSuccessModal';
+import { ActivityDetailModal } from './components/ActivityDetailModal';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { HomeView } from './views/HomeView';
 import { FacilitatorsView } from './views/FacilitatorsView';
 import { ScheduleView } from './views/ScheduleView';
@@ -121,6 +123,8 @@ const MainContent: React.FC = () => {
         <NotificationToast />
         <BookingModal />
         <BookingSuccessModal />
+        <ActivityDetailModal />
+        <OfflineIndicator />
       </div>
     </div>
   );

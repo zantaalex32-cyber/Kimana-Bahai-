@@ -19,8 +19,30 @@ export const BookingModal: React.FC = () => {
     setBookingModalOpen,
     selectedFacilitatorForBooking,
     neighborhoods,
+    facilitators,
     scheduleSession,
   } = useApp();
+
+  const defaultFacilitator: Facilitator = {
+    id: 'fac-lead',
+    name: 'Area Coordinator',
+    role: 'Cluster Coordinator',
+    primaryNeighborhood: 'Kimana Central',
+    activitiesCount: 0,
+    participantsReached: 0,
+    phone: '+254 700 000 000',
+    avatarUrl:
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    rating: 5.0,
+    instituteCompleted: ['Book 1', 'Book 7'],
+    bio: 'Serving Kimana cluster community building process.',
+    isAvailableForChat: true,
+    upcomingMilestone: 'Gathering in planning',
+  };
+
+  const activeFacilitator =
+    selectedFacilitatorForBooking ||
+    (facilitators.length > 0 ? facilitators[0] : defaultFacilitator);
 
   // Selected date & time matching the template's calendar horizontal buttons
   const [selectedDateIndex, setSelectedDateIndex] = useState(0);
@@ -28,13 +50,14 @@ export const BookingModal: React.FC = () => {
   const [activityType, setActivityType] = useState<CoreActivityType>('junior_youth');
   const [title, setTitle] = useState('');
   const [neighborhood, setNeighborhood] = useState(
-    selectedFacilitatorForBooking?.primaryNeighborhood || 'Kimana Central'
+    activeFacilitator.primaryNeighborhood || 'Kimana Central'
   );
+  const [customFacilitatorName, setCustomFacilitatorName] = useState(activeFacilitator.name);
   const [venue, setVenue] = useState('');
   const [expectedParticipants, setExpectedParticipants] = useState(12);
   const [notes, setNotes] = useState('');
 
-  if (!bookingModalOpen || !selectedFacilitatorForBooking) return null;
+  if (!bookingModalOpen) return null;
 
   // Generate 7 upcoming dates (matching the horizontal M 12, T 13, W 14... row in the template)
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -63,14 +86,14 @@ export const BookingModal: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalDate = calendarDates[selectedDateIndex].fullDate;
-    const finalTitle = title.trim() || `${selectedFacilitatorForBooking.name} - ${activityType.replace('_', ' ')} Milestone`;
+    const finalTitle = title.trim() || `${activeFacilitator.name} - ${activityType.replace('_', ' ')} Milestone`;
     const finalVenue = venue.trim() || `${neighborhood} Community Gathering Place`;
 
     scheduleSession({
       title: finalTitle,
       activityType,
-      facilitatorName: selectedFacilitatorForBooking.name,
-      facilitatorId: selectedFacilitatorForBooking.id,
+      facilitatorName: activeFacilitator.name,
+      facilitatorId: activeFacilitator.id,
       neighborhood,
       date: finalDate,
       time: selectedTimeSlot,
@@ -111,27 +134,27 @@ export const BookingModal: React.FC = () => {
           {/* Facilitator Highlight Card (matching Doctor Card in template) */}
           <div className="p-3.5 bg-rose-50/60 border border-rose-100 rounded-2xl flex items-center gap-3">
             <img
-              src={selectedFacilitatorForBooking.avatarUrl}
-              alt={selectedFacilitatorForBooking.name}
+              src={activeFacilitator.avatarUrl}
+              alt={activeFacilitator.name}
               className="w-14 h-14 rounded-xl object-cover ring-2 ring-white shadow-sm"
               referrerPolicy="no-referrer"
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-slate-900 truncate">
-                  {selectedFacilitatorForBooking.name}
+                  {activeFacilitator.name}
                 </span>
                 <span className="text-[11px] font-bold text-[#882455] bg-white px-2 py-0.5 rounded-full border border-rose-100 shadow-2xs">
-                  ★ {selectedFacilitatorForBooking.rating}
+                  ★ {activeFacilitator.rating}
                 </span>
               </div>
               <p className="text-[11px] text-slate-600 truncate mt-0.5 font-medium">
-                {selectedFacilitatorForBooking.role}
+                {activeFacilitator.role}
               </p>
               <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1">
-                <span>📍 {selectedFacilitatorForBooking.primaryNeighborhood}</span>
+                <span>📍 {activeFacilitator.primaryNeighborhood}</span>
                 <span>·</span>
-                <span>👥 {selectedFacilitatorForBooking.participantsReached} accompanied</span>
+                <span>👥 {activeFacilitator.participantsReached} accompanied</span>
               </div>
             </div>
           </div>

@@ -9,31 +9,16 @@ interface NewLsaMeetingModalProps {
 export const NewLsaMeetingModal: React.FC<NewLsaMeetingModalProps> = ({ onClose }) => {
   const { addLsaMeeting } = useApp();
 
-  const [date, setDate] = useState('2026-10-15');
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('6:30 PM - 8:30 PM');
   const [venue, setVenue] = useState('Kimana Bahá\'í Centre / Hybrid');
-  const [chairperson, setChairperson] = useState('Dr. Joseph Ole Ntutu');
-  const [secretary, setSecretary] = useState('Sarah Nanjala');
+  const [chairperson, setChairperson] = useState('');
+  const [secretary, setSecretary] = useState('');
   const [attendeesCount, setAttendeesCount] = useState(9);
 
   const [agendaItems, setAgendaItems] = useState<
     { id: string; title: string; description: string; category: any; status: any }[]
-  >([
-    {
-      id: 'ag-1',
-      title: 'Regional Institute Growth: Reviewing Animator deployment in Isinet',
-      description: 'Accompanying 3 new older youth completing Ruhi Book 5.',
-      category: 'institute_goals',
-      status: 'pending',
-    },
-    {
-      id: 'ag-2',
-      title: 'Planning for Cluster Reflection Meeting Logistics',
-      description: 'Food, transport coordination from Inkisanjani and Namelok, audio-visual setup.',
-      category: 'cluster_growth',
-      status: 'pending',
-    },
-  ]);
+  >([]);
 
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState<any>('institute_goals');
@@ -59,15 +44,28 @@ export const NewLsaMeetingModal: React.FC<NewLsaMeetingModalProps> = ({ onClose 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const finalAgenda =
+      agendaItems.length > 0
+        ? agendaItems
+        : [
+            {
+              id: `ag-${Date.now()}`,
+              title: 'Consultation on Kimana Neighborhood Growth & Institute Accompaniment',
+              description: 'Reviewing core activities and coordinator accompaniment across neighborhoods.',
+              category: 'cluster_growth' as const,
+              status: 'pending' as const,
+            },
+          ];
+
     addLsaMeeting({
       date,
       time,
-      venue,
+      venue: venue.trim() || "Kimana Bahá'í Centre / Hybrid",
       status: 'upcoming',
-      chairperson,
-      secretary,
+      chairperson: chairperson.trim() || 'Assembly Chairperson',
+      secretary: secretary.trim() || 'Assembly Secretary',
       attendeesCount: Number(attendeesCount),
-      agendaItems,
+      agendaItems: finalAgenda,
       resolutions: [],
     });
     onClose();
