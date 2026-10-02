@@ -1,0 +1,6 @@
+{
+  "name": "Kimana Cluster Tracker",
+  "description": "Bahá'í cluster tracking and community building platform for Kimana with LSA planning, growth cycle dashboards, facilitator coordination, and automated scheduling.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
